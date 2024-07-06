@@ -25,15 +25,17 @@ public class MarcaService {
     private static final Logger logger = Logger.getLogger(CarroService.class.getName());
 
     public List<Marca> findAll() {
+        logger.info("Findig all brands");
         return marcaRepository.findAll();
     }
 
     public Marca save(Marca marca){
+        logger.info("Saving brand with id: " + marca.getId());
         return marcaRepository.save(marca);
     }
 
     public Optional<MarcaDTO> findViewById(Long id) {
-        logger.info("Finding car with id: " + id);
+        logger.info("Finding brand with id: " + id);
         Optional<Marca> marca = Optional.ofNullable(marcaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found with ID " + id)));
 
@@ -46,7 +48,7 @@ public class MarcaService {
     }
 
     public void delete(Long id) {
-        logger.info("Deleting car with id: " + id);
+        logger.info("Deleting branb with id: " + id);
         Optional<Marca> marcaEncontrada = Optional.ofNullable(marcaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID " + id)));
 
@@ -54,6 +56,7 @@ public class MarcaService {
     }
 
     public Marca update(Long id, Marca marca) {
+        logger.info("Updating a brand");
         Optional<Marca> marcaEncontrada = Optional.ofNullable(marcaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id)));
 

@@ -57,6 +57,7 @@ public class CarroService {
     }
 
     public CarroDTO save(CarroDTO carroDTO) {
+        logger.info("Saving a car");
         Modelo modeloCarro = modeloRepository.findById(carroDTO.getModelo_id())
                 .orElseThrow(() -> new ResourceNotFoundException("Modelo not found with ID " + carroDTO.getModelo_id()));
 
@@ -75,6 +76,7 @@ public class CarroService {
     }
 
     public CarroDTO update(Long id, CarroDTO carroDTO) {
+        logger.info("Updating a car");
         Carro carroEncontrado = carroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Carro not found with id " + id));
 

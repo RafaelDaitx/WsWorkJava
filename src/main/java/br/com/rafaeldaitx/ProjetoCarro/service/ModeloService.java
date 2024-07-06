@@ -1,20 +1,13 @@
 package br.com.rafaeldaitx.ProjetoCarro.service;
 
-import br.com.rafaeldaitx.ProjetoCarro.data.MarcaDTO;
 import br.com.rafaeldaitx.ProjetoCarro.data.ModeloDTO;
 import br.com.rafaeldaitx.ProjetoCarro.exceptions.ResourceNotFoundException;
-import br.com.rafaeldaitx.ProjetoCarro.mapper.DozerMapper;
 import br.com.rafaeldaitx.ProjetoCarro.model.Carro;
-import br.com.rafaeldaitx.ProjetoCarro.model.Marca;
 import br.com.rafaeldaitx.ProjetoCarro.model.Modelo;
 import br.com.rafaeldaitx.ProjetoCarro.repository.CarroRepository;
 import br.com.rafaeldaitx.ProjetoCarro.repository.MarcaRepository;
 import br.com.rafaeldaitx.ProjetoCarro.repository.ModeloRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,6 +29,7 @@ public class ModeloService {
     private static final Logger logger = Logger.getLogger(CarroService.class.getName());
 
     public List<Modelo> findAll() {
+        logger.info("Findig all models");
         return modeloRepository.findAll();
     }
 
@@ -44,7 +38,7 @@ public class ModeloService {
     }
 
     public Optional<ModeloDTO> findViewById(Long id) {
-        logger.info("Finding Modelo with id: " + id);
+        logger.info("Finding model with id: " + id);
         Optional<Modelo> modelo = Optional.ofNullable(modeloRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id)));
 
@@ -60,7 +54,7 @@ public class ModeloService {
     }
 
     public void delete(Long id) {
-        logger.info("Deleting Modelo with id: " + id);
+        logger.info("Deleting model with id: " + id);
         Optional<Modelo> modeloEncontrado = Optional.ofNullable(modeloRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id)));
 
@@ -71,6 +65,7 @@ public class ModeloService {
     }
 
     public ModeloDTO update(Long id, ModeloDTO modeloDTO){
+        logger.info("Saving model with id: " + id);
         var modeloEncontrado = modeloRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id));
 
