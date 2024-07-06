@@ -1,15 +1,20 @@
 package br.com.rafaeldaitx.ProjetoCarro.service;
 
 import br.com.rafaeldaitx.ProjetoCarro.data.CarroDTO;
+import br.com.rafaeldaitx.ProjetoCarro.exceptions.ResourceNotFoundException;
+import br.com.rafaeldaitx.ProjetoCarro.mapper.DozerMapper;
 import br.com.rafaeldaitx.ProjetoCarro.model.Carro;
 import br.com.rafaeldaitx.ProjetoCarro.model.Modelo;
 import br.com.rafaeldaitx.ProjetoCarro.repository.CarroRepository;
+import br.com.rafaeldaitx.ProjetoCarro.repository.ModeloRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @Service
 public class CarroService {
@@ -17,17 +22,24 @@ public class CarroService {
     @Autowired
     private CarroRepository carroRepository;
 
+
+    @Autowired
+    private ModeloRepository modeloRepository;
+
+    private DozerMapper dozerMapper;
+    private static final Logger logger = Logger.getLogger(CarroService.class.getName());
+
     public List<CarroDTO> findAll() {
+        logger.info("Findig all cars");
         List<Carro> carros = carroRepository.findAll();
         List<CarroDTO> carroDTOs = new ArrayList<>();
 
         for (Carro carro : carros) {
             Modelo modelo = carro.getModelo();
-            if (modelo == null) {
-                // Handle the case where the modelo is null
-                System.out.println("Modelo is null for Carro ID: " + carro.getId());
-                continue;
-            }
+
+            if (modelo == null)
+                throw new EntityNotFoundException("Modelo is null for Carro ID: " + carro.getId());
+
             CarroDTO dto = new CarroDTO(
                     carro.getId(),
                     carro.getTimestamp_cadastro().getTime() / 1000, // Converting to Unix timestamp
@@ -46,28 +58,59 @@ public class CarroService {
     }
 
     public Carro save(Carro carro){
+        logger.info("Saving carro with id: " + carro.getId());
+
+        Optional<Modelo> modeloCarro = modeloRepository.findById(carro.getModelo().getId());
+
+        if(modeloCarro.isEmpty()) throw new ResourceNotFoundException("Modelo not found with ID " + carro.getModelo().getId());
+
         return carroRepository.save(carro);
     }
 
-    public Carro update(Long id, Carro carro){
-        Optional<Carro> carroEncontrado = carroRepository.findById(carro.getId());
-        carroEncontrado.get().setId(id);
-        return carroRepository.save(carro);
-    }
+    public CarroDTO update(Long id, CarroDTO carroDTO) {
+        Carro carroEncontrado = carroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Carro not found with id " + id));
 
+        Modelo modeloCarro = modeloRepository.findById(carroDTO.getModelo_id())
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo not found with ID " + carroDTO.getModelo_id()));
+
+        // Atualiza os campos do carro com base no DTO recebido
+        carroEncontrado.setAno(carroDTO.getAno());
+        carroEncontrado.setCombustivel(carroDTO.getCombustivel());
+        carroEncontrado.setNum_portas(carroDTO.getNum_portas());
+        carroEncontrado.setCor(carroDTO.getCor());
+        carroEncontrado.setModelo(modeloCarro);
+
+        // Salva o carro atualizado
+        carroRepository.save(carroEncontrado);
+
+        // Cria e retorna um DTO com os dados atualizados
+        return new CarroDTO(
+                carroEncontrado.getId(),
+                carroEncontrado.getTimestamp_cadastro().getTime() / 1000, // Converting to Unix timestamp
+                modeloCarro.getId(),
+                carroEncontrado.getAno(),
+                carroEncontrado.getCombustivel(),
+                carroEncontrado.getNum_portas(),
+                carroEncontrado.getCor(),
+                modeloCarro.getNome(),
+                modeloCarro.getValor_fipe()
+        );
+    }
     public Optional<CarroDTO> findViewById(Long id) {
-        Optional<Carro> carros = carroRepository.findById(id);
+        logger.info("Finding car with id: " + id);
+        Optional<Carro> carro = carroRepository.findById(id);
 
         Optional<CarroDTO> dto = Optional.of(new CarroDTO(
-                carros.get().getId(),
-                carros.get().getTimestamp_cadastro().getTime() / 1000, // Converting to Unix timestamp
-                carros.get().getId(),
-                carros.get().getAno(),
-                carros.get().getCombustivel(),
-                carros.get().getNum_portas(),
-                carros.get().getCor(),
-                carros.get().getModelo().getNome(),
-                carros.get().getModelo().getValor_fipe()
+                carro.get().getId(),
+                carro.get().getTimestamp_cadastro().getTime() / 1000, // Converting to Unix timestamp
+                carro.get().getId(),
+                carro.get().getAno(),
+                carro.get().getCombustivel(),
+                carro.get().getNum_portas(),
+                carro.get().getCor(),
+                carro.get().getModelo().getNome(),
+                carro.get().getModelo().getValor_fipe()
         ));
 
         return dto;
@@ -75,6 +118,7 @@ public class CarroService {
     }
 
     public void delete(Long id) {
+        logger.info("Deleting car with id: " + id);
         Optional<Carro> carroEncontrado = carroRepository.findById(id);
         carroRepository.delete(carroEncontrado.get());
     }
