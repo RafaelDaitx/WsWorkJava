@@ -2,7 +2,6 @@ package br.com.rafaeldaitx.ProjetoCarro.service;
 
 import br.com.rafaeldaitx.ProjetoCarro.data.CarroDTO;
 import br.com.rafaeldaitx.ProjetoCarro.exceptions.ResourceNotFoundException;
-import br.com.rafaeldaitx.ProjetoCarro.mapper.DozerMapper;
 import br.com.rafaeldaitx.ProjetoCarro.model.Carro;
 import br.com.rafaeldaitx.ProjetoCarro.model.Modelo;
 import br.com.rafaeldaitx.ProjetoCarro.repository.CarroRepository;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -26,7 +26,6 @@ public class CarroService {
     @Autowired
     private ModeloRepository modeloRepository;
 
-    private DozerMapper dozerMapper;
     private static final Logger logger = Logger.getLogger(CarroService.class.getName());
 
     public List<CarroDTO> findAll() {
@@ -57,14 +56,22 @@ public class CarroService {
         return carroDTOs;
     }
 
-    public Carro save(Carro carro){
-        logger.info("Saving carro with id: " + carro.getId());
+    public CarroDTO save(CarroDTO carroDTO) {
+        Modelo modeloCarro = modeloRepository.findById(carroDTO.getModelo_id())
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo not found with ID " + carroDTO.getModelo_id()));
 
-        Optional<Modelo> modeloCarro = modeloRepository.findById(carro.getModelo().getId());
+        Carro carroSalvo = new Carro();
 
-        if(modeloCarro.isEmpty()) throw new ResourceNotFoundException("Modelo not found with ID " + carro.getModelo().getId());
+        carroSalvo.setTimestamp_cadastro(new Date());
+        carroSalvo.setAno(carroDTO.getAno());
+        carroSalvo.setCombustivel(carroDTO.getCombustivel());
+        carroSalvo.setNum_portas(carroDTO.getNum_portas());
+        carroSalvo.setCor(carroDTO.getCor());
+        carroSalvo.setModelo(modeloCarro);
 
-        return carroRepository.save(carro);
+        carroRepository.save(carroSalvo);
+
+        return carroDTO;
     }
 
     public CarroDTO update(Long id, CarroDTO carroDTO) {
@@ -74,17 +81,14 @@ public class CarroService {
         Modelo modeloCarro = modeloRepository.findById(carroDTO.getModelo_id())
                 .orElseThrow(() -> new ResourceNotFoundException("Modelo not found with ID " + carroDTO.getModelo_id()));
 
-        // Atualiza os campos do carro com base no DTO recebido
         carroEncontrado.setAno(carroDTO.getAno());
         carroEncontrado.setCombustivel(carroDTO.getCombustivel());
         carroEncontrado.setNum_portas(carroDTO.getNum_portas());
         carroEncontrado.setCor(carroDTO.getCor());
         carroEncontrado.setModelo(modeloCarro);
 
-        // Salva o carro atualizado
         carroRepository.save(carroEncontrado);
 
-        // Cria e retorna um DTO com os dados atualizados
         return new CarroDTO(
                 carroEncontrado.getId(),
                 carroEncontrado.getTimestamp_cadastro().getTime() / 1000, // Converting to Unix timestamp
@@ -99,7 +103,8 @@ public class CarroService {
     }
     public Optional<CarroDTO> findViewById(Long id) {
         logger.info("Finding car with id: " + id);
-        Optional<Carro> carro = carroRepository.findById(id);
+        Optional<Carro> carro = Optional.ofNullable(carroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with ID " + id)));
 
         Optional<CarroDTO> dto = Optional.of(new CarroDTO(
                 carro.get().getId(),
@@ -119,7 +124,8 @@ public class CarroService {
 
     public void delete(Long id) {
         logger.info("Deleting car with id: " + id);
-        Optional<Carro> carroEncontrado = carroRepository.findById(id);
+        Optional<Carro> carroEncontrado = Optional.ofNullable(carroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with ID " + id)));
         carroRepository.delete(carroEncontrado.get());
     }
 }

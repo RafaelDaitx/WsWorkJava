@@ -9,7 +9,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonPropertyOrder({"nomeMarca"})
 public class MarcaDTO {
-    private String nomeMarca;
+    private Long idMarca;
+
+    public MarcaDTO(Long idMarca, String nomeMarca) {
+        this.idMarca = idMarca;
+        this.nomeMarca = nomeMarca;
+    }
+
+    public Long getIdMarca() {
+        return idMarca;
+    }
+
+    public void setIdMarca(Long idMarca) {
+        this.idMarca = idMarca;
+    }
 
     public String getNomeMarca() {
         return nomeMarca;
@@ -19,8 +32,8 @@ public class MarcaDTO {
         this.nomeMarca = nomeMarca;
     }
 
-    public MarcaDTO(String nomeMarca) {
-        this.nomeMarca = nomeMarca;
-    }
+    private String nomeMarca;
+
+
 
 }

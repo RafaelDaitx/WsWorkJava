@@ -92,7 +92,7 @@ public class CarroController {
                     )
             }
     )
-    public Carro create(@RequestBody Carro carro) {
+    public CarroDTO create(@RequestBody CarroDTO carro) {
         return service.save(carro);
     }
 

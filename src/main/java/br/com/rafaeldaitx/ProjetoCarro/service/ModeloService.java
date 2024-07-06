@@ -2,14 +2,19 @@ package br.com.rafaeldaitx.ProjetoCarro.service;
 
 import br.com.rafaeldaitx.ProjetoCarro.data.MarcaDTO;
 import br.com.rafaeldaitx.ProjetoCarro.data.ModeloDTO;
+import br.com.rafaeldaitx.ProjetoCarro.exceptions.ResourceNotFoundException;
 import br.com.rafaeldaitx.ProjetoCarro.mapper.DozerMapper;
 import br.com.rafaeldaitx.ProjetoCarro.model.Carro;
 import br.com.rafaeldaitx.ProjetoCarro.model.Marca;
 import br.com.rafaeldaitx.ProjetoCarro.model.Modelo;
+import br.com.rafaeldaitx.ProjetoCarro.repository.CarroRepository;
 import br.com.rafaeldaitx.ProjetoCarro.repository.MarcaRepository;
 import br.com.rafaeldaitx.ProjetoCarro.repository.ModeloRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +30,9 @@ public class ModeloService {
     @Autowired
     private MarcaRepository marcaRepository;
 
+    @Autowired
+    private CarroRepository carroRepository;
+
     private static final Logger logger = Logger.getLogger(CarroService.class.getName());
 
     public List<Modelo> findAll() {
@@ -37,7 +45,8 @@ public class ModeloService {
 
     public Optional<ModeloDTO> findViewById(Long id) {
         logger.info("Finding Modelo with id: " + id);
-        Optional<Modelo> modelo = modeloRepository.findById(id);
+        Optional<Modelo> modelo = Optional.ofNullable(modeloRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id)));
 
         Optional<ModeloDTO> dto = Optional.of(new ModeloDTO(
                modelo.get().getId(),
@@ -52,24 +61,26 @@ public class ModeloService {
 
     public void delete(Long id) {
         logger.info("Deleting Modelo with id: " + id);
-        Optional<Modelo> modeloEncontrado = modeloRepository.findById(id);
+        Optional<Modelo> modeloEncontrado = Optional.ofNullable(modeloRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id)));
+
+        List<Carro> carroRelacionado = carroRepository.findModeloInCarro(id);
+
+        if(!carroRelacionado.isEmpty())  throw new IllegalStateException("Não é possível deletar o modelo porque há carros associados a ele.");
         modeloRepository.delete(modeloEncontrado.get());
     }
 
     public ModeloDTO update(Long id, ModeloDTO modeloDTO){
-        var modeloEncontrado = modeloRepository.findById(id);
+        var modeloEncontrado = modeloRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id));
 
-        if (modeloEncontrado.isPresent()) {
-            Modelo modeloAtualizado = modeloEncontrado.get();
+        var marcaAtualizada = marcaRepository.findById(modeloDTO.getMarca_id())
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID " + id));;
+
+            Modelo modeloAtualizado = modeloEncontrado;
             modeloAtualizado.setNome(modeloDTO.getNome());
             modeloAtualizado.setValor_fipe(modeloDTO.getValor_fipe());
-
-            if(modeloDTO.getMarca_id() != null){
-                var marcaAtualizada = marcaRepository.findById(modeloDTO.getMarca_id());
-
-                if(marcaAtualizada.isPresent()) modeloAtualizado.setMarca(marcaAtualizada.get());
-
-            }
+            modeloAtualizado.setMarca(marcaAtualizada.);
 
             Modelo modeloSalvo = modeloRepository.save(modeloAtualizado);
 
@@ -81,8 +92,5 @@ public class ModeloService {
                     modeloSalvo.getMarca().getNomeMarca()
             );
             return modeloDtoConvertido2;
-        } else {
-            throw new EntityNotFoundException("Carro not found with id " + id);
-        }
     }
 }

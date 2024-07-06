@@ -2,6 +2,7 @@ package br.com.rafaeldaitx.ProjetoCarro.service;
 
 import br.com.rafaeldaitx.ProjetoCarro.data.CarroDTO;
 import br.com.rafaeldaitx.ProjetoCarro.data.MarcaDTO;
+import br.com.rafaeldaitx.ProjetoCarro.exceptions.ResourceNotFoundException;
 import br.com.rafaeldaitx.ProjetoCarro.model.Carro;
 import br.com.rafaeldaitx.ProjetoCarro.model.Marca;
 import br.com.rafaeldaitx.ProjetoCarro.repository.CarroRepository;
@@ -33,9 +34,11 @@ public class MarcaService {
 
     public Optional<MarcaDTO> findViewById(Long id) {
         logger.info("Finding car with id: " + id);
-        Optional<Marca> marca = marcaRepository.findById(id);
+        Optional<Marca> marca = Optional.ofNullable(marcaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with ID " + id)));
 
         Optional<MarcaDTO> dto = Optional.of(new MarcaDTO(
+                marca.get().getId(),
                 marca.get().getNomeMarca()
         ));
 
@@ -44,22 +47,19 @@ public class MarcaService {
 
     public void delete(Long id) {
         logger.info("Deleting car with id: " + id);
-        Optional<Marca> marcaEncontrada = marcaRepository.findById(id);
+        Optional<Marca> marcaEncontrada = Optional.ofNullable(marcaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID " + id)));
 
-        if(marcaEncontrada.isEmpty()) throw new EntityNotFoundException("Marca not found with id " + id);
         marcaRepository.delete(marcaEncontrada.get());
     }
 
     public Marca update(Long id, Marca marca) {
-        Optional<Marca> marcaEncontrada = marcaRepository.findById(id);
+        Optional<Marca> marcaEncontrada = Optional.ofNullable(marcaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Model not found with ID " + id)));
 
-        if (marcaEncontrada.isPresent()) {
             Marca marcaAtualizada = marcaEncontrada.get();
             marcaAtualizada.setNomeMarca(marca.getNomeMarca());
 
             return marcaRepository.save(marcaAtualizada);
-        } else {
-            throw new EntityNotFoundException("Marca not found with id " + id);
-        }
     }
 }
