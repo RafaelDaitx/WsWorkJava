@@ -75,17 +75,17 @@ public class ModeloService {
             Modelo modeloAtualizado = modeloEncontrado;
             modeloAtualizado.setNome(modeloDTO.getNome());
             modeloAtualizado.setValor_fipe(modeloDTO.getValor_fipe());
-            modeloAtualizado.setMarca(marcaAtualizada.);
+            modeloAtualizado.setMarca(marcaAtualizada);
 
             Modelo modeloSalvo = modeloRepository.save(modeloAtualizado);
 
-            ModeloDTO modeloDtoConvertido2 = new ModeloDTO(
+            ModeloDTO modeloDtoConvertido = new ModeloDTO(
                     modeloSalvo.getId(),
                     modeloSalvo.getNome(),
                     modeloSalvo.getValor_fipe(),
                     modeloSalvo.getMarca().getId(),
                     modeloSalvo.getMarca().getNomeMarca()
             );
-            return modeloDtoConvertido2;
+            return modeloDtoConvertido;
     }
 }
