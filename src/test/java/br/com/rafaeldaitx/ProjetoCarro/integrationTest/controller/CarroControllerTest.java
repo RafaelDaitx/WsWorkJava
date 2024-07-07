@@ -1,7 +1,9 @@
 package br.com.rafaeldaitx.ProjetoCarro.integrationTest.controller;
 
 import br.com.rafaeldaitx.ProjetoCarro.data.CarroDTO;
+import br.com.rafaeldaitx.ProjetoCarro.data.ModeloDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
@@ -11,9 +13,11 @@ import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
+
+import java.util.List;
+
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -88,10 +92,9 @@ public class CarroControllerTest {
     @Test
     @Order(1)
     void testUpdate(){
-
+        Long id = carroDTO.getId();
         specification.basePath("/api/carros/1");
 
-        carroDTO.setId(1l);
         carroDTO.setTimestamp_cadastro(1696539488L);
         carroDTO.setModelo_id(2L);
         carroDTO.setAno(2016);
@@ -115,30 +118,30 @@ public class CarroControllerTest {
 
         try {
             CarroDTO carro = objectMapper.readValue(content, CarroDTO.class);
-            carroDTO = carro;
+            assertNotNull(carro.getId() > 0);
+            assertNotNull(carro.getTimestamp_cadastro());
+            assertNotNull(carro.getModelo_id());
+            assertNotNull(carro.getCombustivel());
+            assertNotNull(carro.getAno());
+            assertNotNull(carro.getNum_portas());
+            assertNotNull(carro.getCor());
+            assertNotNull(carro.getNome_modelo());
+            assertNotNull(carro.getValor());
+
+
+            assertEquals(2l, carro.getModelo_id());
+            assertEquals("FLEXX", carro.getCombustivel());
+            assertEquals(2016, carro.getAno());
+            assertEquals(2, carro.getNum_portas());
+            assertEquals("BEGEE", carro.getCor());
+            assertEquals("ONIX PLUSS", carro.getNome_modelo());
+            assertEquals(500.00, carro.getValor());
+            assertEquals(1696539488, carro.getTimestamp_cadastro());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 
-        assertNotNull(carroDTO.getId() > 0);
-        assertNotNull(carroDTO.getTimestamp_cadastro());
-        assertNotNull(carroDTO.getModelo_id());
-        assertNotNull(carroDTO.getCombustivel());
-        assertNotNull(carroDTO.getAno());
-        assertNotNull(carroDTO.getNum_portas());
-        assertNotNull(carroDTO.getCor());
-        assertNotNull(carroDTO.getNome_modelo());
-        assertNotNull(carroDTO.getValor());
 
-
-        assertEquals(2l, carroDTO.getModelo_id());
-        assertEquals("FLEXX", carroDTO.getCombustivel());
-        assertEquals(2016, carroDTO.getAno());
-        assertEquals(2, carroDTO.getNum_portas());
-        assertEquals("BEGEE", carroDTO.getCor());
-        assertEquals("ONIX PLUSS", carroDTO.getNome_modelo());
-        assertEquals(500.00, carroDTO.getValor());
-        assertEquals(1696539488, carroDTO.getTimestamp_cadastro());
 
     }
 
@@ -187,8 +190,9 @@ public class CarroControllerTest {
 
     @Test
     @Order(3)
-    void testFindViewAll(){
-        specification.basePath("/api/carros");
+    void testFindViewAll() {
+        specification.basePath("/api/carros/modelo");
+
         String content = given()
                 .spec(specification)
                 .contentType("application/json")
@@ -201,21 +205,14 @@ public class CarroControllerTest {
                 .asString();
 
         try {
-            CarroDTO carro = objectMapper.readValue(content, CarroDTO.class);
-            carroDTO = carro;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+            List<CarroDTO> carros = objectMapper.readValue(content, new TypeReference<List<CarroDTO>>() {});
 
-        assertNotNull(carroDTO.getId());
-        assertNotNull(carroDTO.getTimestamp_cadastro());
-        assertNotNull(carroDTO.getModelo_id());
-        assertNotNull(carroDTO.getCombustivel());
-        assertNotNull(carroDTO.getAno());
-        assertNotNull(carroDTO.getNum_portas());
-        assertNotNull(carroDTO.getCor());
-        assertNotNull(carroDTO.getNome_modelo());
-        assertNotNull(carroDTO.getValor());
+            assertNotNull(carros);
+            assertFalse(carros.isEmpty());
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Erro ao deserializar JSON", e);
+        }
     }
 
     private void mockCar(){
