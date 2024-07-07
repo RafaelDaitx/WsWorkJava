@@ -207,7 +207,7 @@ public class CarroControllerTest {
             throw new RuntimeException(e);
         }
 
-        assertNotNull(carroDTO.getId() > 0);
+        assertNotNull(carroDTO.getId());
         assertNotNull(carroDTO.getTimestamp_cadastro());
         assertNotNull(carroDTO.getModelo_id());
         assertNotNull(carroDTO.getCombustivel());
