@@ -30,7 +30,7 @@ public class MarcaController {
     @GetMapping
     @Operation(
             summary = "Finds all brands",
-            description = "Finds all cars",
+            description = "Finds all brands",
             tags = {"Brands"},
             responses = {
                     @ApiResponse(
